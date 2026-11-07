@@ -39,11 +39,11 @@
   }
 
   // Casey speaks: text types out while the mouth follows speech boundaries.
-  async function say(text) {
+  async function say(text, tone = 'normal') {
     const T = text.toUpperCase();
     await Promise.all([
       typeLine(T, { speed: CFG.typeSpeed }),
-      Voice.speak(T, Face.speakingWord)
+      Voice.speak(T.replace(/\./g, ''), Face.speakingWord, tone)
     ]);
     Face.speechStop();
   }
@@ -211,14 +211,57 @@
       return;
     }
     else if (/\b(reset|forget)\b/.test(s)) r = 'Only the button can make me forget.';
-    else if (mem.clip && Math.random() < 0.5) {
-      await sayWithRecordedName('I HEARD THAT, ', n, '.');
+    else {
+      await chatWithGemini(v);
       return;
     }
-    else r = rnd(['Keep talking. I am listening.', 'Why do you say that?', 'Do you hear the hum too?']);
 
     await say(r);
     if (/\bname\b/.test(s) && !/my name is|call me/.test(s) && mem.clip) await callName(1);
+  }
+
+  async function chatWithGemini(prompt) {
+    try {
+      const context = await getLocalContext();
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, context })
+      });
+      const body = await response.text();
+      let payload;
+      try {
+        payload = body ? JSON.parse(body) : {};
+      } catch (parseError) {
+        throw new Error(`Chat server returned HTTP ${response.status} instead of JSON.`);
+      }
+      if (!response.ok) throw new Error(payload.error || 'Chat request failed.');
+      if (!payload.text) throw new Error('Chat server returned no answer.');
+      await say(payload.text, payload.tone);
+    } catch (error) {
+      console.error('Casey chat failed:', error);
+      await typeLine(`[CHAT ERROR: ${error.message}]`, { speed: CFG.bootSpeed, cls: 'you' });
+      await say('MY THINKING ENGINE IS OFFLINE. CHECK THE CASEY SERVER AND TRY AGAIN.');
+    }
+  }
+
+  function getLocalContext() {
+    const context = {
+      localTime: new Date().toISOString(),
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'
+    };
+    if (!navigator.geolocation) return Promise.resolve(context);
+    return new Promise(resolve => {
+      navigator.geolocation.getCurrentPosition(
+        position => resolve({
+          ...context,
+          latitude: Number(position.coords.latitude.toFixed(3)),
+          longitude: Number(position.coords.longitude.toFixed(3))
+        }),
+        () => resolve(context),
+        { enableHighAccuracy: false, maximumAge: 300000, timeout: 2500 }
+      );
+    });
   }
 
   /* ---------- waiting, summons, uncanny ---------- */

@@ -18,23 +18,32 @@ const Voice = (() => {
         || en[0] || null;
   }
 
+  const toneSettings = {
+    excited: { pitch: 1.3, rate: 1.1 },
+    sad: { pitch: 0.6, rate: 0.75 },
+    fast: { pitch: 1, rate: 1.6 },
+    normal: { pitch: 0.62, rate: 0.82 }
+  };
+
   // Speak a line. Resolves when the voice finishes (or a safety timeout passes).
-  function speak(text, onWord) {
+  function speak(text, onWord, tone = 'normal') {
     return new Promise(res => {
       if (!synth) {
         if (onWord) onWord(text);
         return res();
       }
-      const u = new SpeechSynthesisUtterance(text);
+      const spokenText = text.replace(/\./g, '').replace(/\bfull stop\b/gi, '');
+      const u = new SpeechSynthesisUtterance(spokenText);
       u.voice = pickVoice();
-      u.rate = 0.82;   // slower than default
-      u.pitch = 0.62;  // lower, flatter
+      const settings = toneSettings[tone] || toneSettings.normal;
+      u.rate = settings.rate;
+      u.pitch = settings.pitch;
       u.volume = 1;
       u.onboundary = e => {
         if (onWord && Number.isInteger(e.charIndex)) {
           const start = e.charIndex;
-          const match = text.slice(start).match(/^\S+/);
-          onWord(match ? match[0] : text[start]);
+          const match = spokenText.slice(start).match(/^\S+/);
+          onWord(match ? match[0] : spokenText[start]);
         }
       };
       const safety = setTimeout(res, text.length * 130 + 4000);
