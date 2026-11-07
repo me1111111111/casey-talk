@@ -114,7 +114,7 @@ async function handleChat(req, res) {
         : 'Current weather is unavailable because the user did not share a location.'
     ].join(' ');
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: `You are Casey, a helpful personal computer assistant with a slightly eerie retro-terminal personality. Answer the user's actual question directly and do not repeat stock phrases. Use the supplied time and weather context for time or weather questions. Never say the words "full stop" to represent punctuation. Keep the answer concise and conversational. Choose one delivery tone: normal, excited, sad, or fast. Return ONLY valid JSON in this exact shape: {"text":"your answer","tone":"normal"}.\n\nContext: ${context}\n\nUser: ${prompt}`,
       config: { responseMimeType: 'application/json' }
     });
