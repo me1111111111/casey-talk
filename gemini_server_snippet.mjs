@@ -8,7 +8,7 @@ const characterGuide = await readFile(new URL('./casey_character.md', import.met
 // history: [{ role: 'user' | 'model', text: '...' }, ...]  (kept per session by the client)
 export async function askCasey(ai, model, history, prompt, context) {
   const contents = [
-    ...history.slice(-12).map(turn => ({
+    ...history.slice(-6).map(turn => ({
       role: turn.role,
       parts: [{ text: turn.text }]
     })),
@@ -30,7 +30,7 @@ export async function askCasey(ai, model, history, prompt, context) {
         required: ['text', 'tone']
       },
       temperature: 0.9,
-      maxOutputTokens: 300
+      maxOutputTokens: 150
     }
   });
 

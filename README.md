@@ -19,6 +19,14 @@ Run Casey through `npm start` at `http://localhost:3000`; opening `index.html` d
 
 `GEMINI_MODEL` defaults to `gemini-flash-latest`. You can override it in `.env` with any model listed by your Gemini API key.
 
+## Deploy to Render
+
+1. Create a new Render Blueprint from this repository.
+2. Set `GEMINI_API_KEY` in the Render service environment variables.
+3. Deploy the service and open the generated Render URL.
+
+The included `render.yaml` configures the Node build and start commands. Keep the Gemini key in Render's environment settings; do not commit it.
+
 If PowerShell says `npm` is not recognized after installing Node.js, reopen PowerShell. You can also run the commands directly with:
 
 ```powershell
