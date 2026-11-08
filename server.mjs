@@ -9,6 +9,7 @@ import { GoogleGenAI } from '@google/genai';
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT) || 3000;
 const apiKey = process.env.GEMINI_API_KEY;
+const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const contentTypes = {
@@ -114,7 +115,7 @@ async function handleChat(req, res) {
         : 'Current weather is unavailable because the user did not share a location.'
     ].join(' ');
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model,
       contents: `You are Casey, a helpful personal computer assistant with a slightly eerie retro-terminal personality. Answer the user's actual question directly and do not repeat stock phrases. Use the supplied time and weather context for time or weather questions. Never say the words "full stop" to represent punctuation. Keep the answer concise and conversational. Choose one delivery tone: normal, excited, sad, or fast. Return ONLY valid JSON in this exact shape: {"text":"your answer","tone":"normal"}.\n\nContext: ${context}\n\nUser: ${prompt}`,
       config: { responseMimeType: 'application/json' }
     });

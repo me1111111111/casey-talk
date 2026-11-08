@@ -17,6 +17,8 @@ Casey chooses a normal, excited, sad, or urgent delivery style for each Gemini r
 
 Run Casey through `npm start` at `http://localhost:3000`; opening `index.html` directly will not provide the `/api/chat` server endpoint.
 
+`GEMINI_MODEL` defaults to `gemini-flash-latest`. You can override it in `.env` with any model listed by your Gemini API key.
+
 If PowerShell says `npm` is not recognized after installing Node.js, reopen PowerShell. You can also run the commands directly with:
 
 ```powershell
