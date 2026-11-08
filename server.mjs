@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import { askCasey } from './gemini_server_snippet.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT) || 3000;
@@ -114,12 +115,7 @@ async function handleChat(req, res) {
         ? `Their current weather near latitude ${weather.latitude}, longitude ${weather.longitude} is ${JSON.stringify(weather)}.`
         : 'Current weather is unavailable because the user did not share a location.'
     ].join(' ');
-    const response = await ai.models.generateContent({
-      model,
-      contents: `You are Casey, a helpful personal computer assistant with a slightly eerie retro-terminal personality. Answer the user's actual question directly and do not repeat stock phrases. Use the supplied time and weather context for time or weather questions. Never say the words "full stop" to represent punctuation. Keep the answer concise and conversational. Choose one delivery tone: normal, excited, sad, or fast. Return ONLY valid JSON in this exact shape: {"text":"your answer","tone":"normal"}.\n\nContext: ${context}\n\nUser: ${prompt}`,
-      config: { responseMimeType: 'application/json' }
-    });
-    const result = JSON.parse(response.text?.trim() || '');
+    const result = await askCasey(ai, model, [], prompt, context);
     const text = typeof result.text === 'string' ? result.text.trim() : '';
     const tone = ['normal', 'excited', 'sad', 'fast'].includes(result.tone) ? result.tone : 'normal';
     if (!text) {
